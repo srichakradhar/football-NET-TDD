@@ -1,0 +1,262 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Threading.Tasks;
+using FluentAssertions;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using PgBooking.Models;
+using Xunit;
+
+namespace PgBooking.Tests
+{
+    
+    public class PgBookingTest : IClassFixture<WebApplicationFactory<PgBooking.Startup>>
+    {
+       private readonly WebApplicationFactory<PgBooking.Startup> _factory;
+
+    public PgBookingTest(WebApplicationFactory<PgBooking.Startup> factory)
+    {
+        _factory = factory;
+    }
+    [Fact]
+    public async Task addUser1(){
+        
+       var _client = _factory.CreateClient();
+       var user = new ApplicationUser{userName="jhon",passWord="jhon1",role="ADMIN"};
+       var content = JsonConvert.SerializeObject(user);
+       var stringContent = new StringContent(content,Encoding.UTF8,"application/json");
+       var response =  await _client.PostAsync("/user",stringContent);
+       response.EnsureSuccessStatusCode(); 
+       Console.WriteLine("test1");
+    }
+    [Fact]
+    public async Task addUser2(){
+       
+        var _client = _factory.CreateClient();
+       var user = new ApplicationUser{userName="jhon1",passWord="jhon1",role="ADMIN"};
+       var content = JsonConvert.SerializeObject(user);
+       var stringContent = new StringContent(content,Encoding.UTF8,"application/json");
+       var response =  await _client.PostAsync("/user",stringContent);
+       response.EnsureSuccessStatusCode(); 
+        Console.WriteLine("test2");
+    }
+    [Fact]
+    public async Task addUser3(){
+                Console.WriteLine("test3");
+        var _client = _factory.CreateClient();
+       var user = new ApplicationUser{userName="jhon3",passWord="jhon1",role="USER"};
+       var content = JsonConvert.SerializeObject(user);
+       var stringContent = new StringContent(content,Encoding.UTF8,"application/json");
+       var response =  await _client.PostAsync("/user",stringContent);
+       response.EnsureSuccessStatusCode(); 
+          Console.WriteLine("test3");
+    }
+    [Fact]
+    public async Task addUser4(){
+        var _client = _factory.CreateClient();
+        var credentials = new ApplicationUser{userName="jhon",passWord="jhon1"};
+        var content =JsonConvert.SerializeObject(credentials);
+        var stringContent = new  StringContent(content,Encoding.UTF8,"application/json");
+        var response = await _client.PostAsync("/user/login",stringContent);
+        response.EnsureSuccessStatusCode();
+        var token1 = await response.Content.ReadAsStringAsync();
+        JObject json = JObject.Parse(token1);
+        string jwttoken = Convert.ToString(json.GetValue("token"));
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",jwttoken);
+        var response1 =await _client.GetAsync("/user/jhon");
+        response1.StatusCode.Equals(200);
+        //response1.EnsureSuccessStatusCode();
+        var responseString1 = await response1.Content.ReadAsStringAsync();
+        var user = JsonConvert.DeserializeObject<ApplicationUser>(responseString1);
+        Assert.Equal("jhon",user.userName);
+           Console.WriteLine("test4");
+    }
+    [Fact]
+    public async Task addPg5(){
+        var _client = _factory.CreateClient();
+        // user1
+        var credentials = new ApplicationUser{userName="jhon",passWord="jhon1"};
+        var content =JsonConvert.SerializeObject(credentials);
+        var stringContent = new  StringContent(content,Encoding.UTF8,"application/json");
+        var response = await _client.PostAsync("/user/login",stringContent);
+        response.EnsureSuccessStatusCode();
+        var token1 = await response.Content.ReadAsStringAsync();
+        JObject json = JObject.Parse(token1);
+        string jwttoken = Convert.ToString(json.GetValue("token"));
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",jwttoken);
+        //pg1
+        var pg1 = new PG{ID= 1,pgName="svs pg",location="mumbai"};
+        var content1 = JsonConvert.SerializeObject(pg1);
+        var stringContent1 = new StringContent(content1,Encoding.UTF8,"application/json");
+        var response1 = await _client.PostAsync("/user/addpg",stringContent1);
+        response1.EnsureSuccessStatusCode();
+        //pg2
+        var pg2 = new PG{ID= 2,pgName="svs2 pg",location="lucknow"};
+        var content2 = JsonConvert.SerializeObject(pg2);
+        var stringContent2 = new StringContent(content2,Encoding.UTF8,"application/json");
+        var response2 = await _client.PostAsync("/user/addpg",stringContent2);
+        response2.EnsureSuccessStatusCode();
+         var room = new Rooms{ID=1,ocuupancy=3,availability=3,rentPrice=5000,pgid=1};
+        var content3 = JsonConvert.SerializeObject(room);
+        var stringContent5 = new StringContent(content3,Encoding.UTF8,"application/json");
+        var response5 = await _client.PostAsync("/user/addRoom",stringContent5);
+        response5.EnsureSuccessStatusCode();
+         var room1 = new Rooms{ID=2,ocuupancy=3,availability=3,rentPrice=5000,pgid=1};
+        var content4 = JsonConvert.SerializeObject(room1);
+        var stringContent4 = new StringContent(content4,Encoding.UTF8,"application/json");
+        var response4 = await _client.PostAsync("/user/addRoom",stringContent4);
+        response4.EnsureSuccessStatusCode();
+           Console.WriteLine("test5");
+
+    }
+    [Fact]
+     public async Task Pg6(){
+         var _client1 = _factory.CreateClient();
+        // user1
+        var credentials = new ApplicationUser{userName="jhon1",passWord="jhon1"};
+        var content =JsonConvert.SerializeObject(credentials);
+        var stringContent = new  StringContent(content,Encoding.UTF8,"application/json");
+        var response = await _client1.PostAsync("/user/login",stringContent);
+        response.EnsureSuccessStatusCode();
+        var token1 = await response.Content.ReadAsStringAsync();
+        JObject json = JObject.Parse(token1);
+        string jwttoken = Convert.ToString(json.GetValue("token"));
+        _client1.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",jwttoken);
+        //pg
+         var pg1 = new PG{ID= 3,pgName="sri pg",location="mumbai"};
+        var content1 = JsonConvert.SerializeObject(pg1);
+        var stringContent1 = new StringContent(content1,Encoding.UTF8,"application/json");
+        var response1 = await _client1.PostAsync("/user/addpg",stringContent1);
+        response1.EnsureSuccessStatusCode();
+        //pg
+         var pg2 = new PG{ID= 4,pgName="sri pg",location="mumbai"};
+        var content2 = JsonConvert.SerializeObject(pg2);
+        var stringContent2 = new StringContent(content2,Encoding.UTF8,"application/json");
+        var response2 = await _client1.PostAsync("/user/addpg",stringContent2);
+        response2.EnsureSuccessStatusCode();
+       
+        var response3 = await _client1.GetAsync("/user/pg");
+        response3.EnsureSuccessStatusCode();
+        var responseString = await response3.Content.ReadAsStringAsync();
+        var pg = JsonConvert.DeserializeObject<List<PG>>(responseString);
+        Assert.Equal("jhon",pg[0].username);
+        Assert.Equal("jhon",pg[1].username);
+        Assert.Equal("jhon1",pg[2].username);
+        Assert.Equal("jhon1",pg[3].username);
+        Assert.Equal("mumbai",pg[3].location);
+        Assert.Equal("mumbai",pg[2].location);
+        Assert.Equal("lucknow",pg[1].location);
+        Assert.Equal("mumbai",pg[0].location);
+           Console.WriteLine("test6");
+
+    }
+        [Fact]
+        public async Task pg7(){
+            var _client1 = _factory.CreateClient();
+              var user = new ApplicationUser{userName="jhon2",passWord="jhon1",role="USER"};
+       var content = JsonConvert.SerializeObject(user);
+       var stringContent = new StringContent(content,Encoding.UTF8,"application/json");
+       var response =  await _client1.PostAsync("/user",stringContent);
+       response.EnsureSuccessStatusCode(); 
+        // user1
+        var credentials = new ApplicationUser{userName="jhon2",passWord="jhon1"};
+        var content1 =JsonConvert.SerializeObject(credentials);
+        var stringContent1 = new  StringContent(content1,Encoding.UTF8,"application/json");
+        var response1 = await _client1.PostAsync("/user/login",stringContent1);
+        response1.EnsureSuccessStatusCode();
+        var token1 = await response.Content.ReadAsStringAsync();
+        Console.WriteLine(token1);
+        JObject json = JObject.Parse(token1);
+        string jwttoken = Convert.ToString(json.GetValue("token"));
+        _client1.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",jwttoken);
+         var response3 = await _client1.GetAsync("/user/pg");
+        
+           Console.WriteLine("test7");
+        }
+        [Fact]
+         public async Task pg89(){
+              var _client1 = _factory.CreateClient();
+                 var user = new ApplicationUser{userName="jhon5",passWord="jhon1",role="USER"};
+       var content = JsonConvert.SerializeObject(user);
+       var stringContent = new StringContent(content,Encoding.UTF8,"application/json");
+       var response =  await _client1.PostAsync("/user",stringContent);
+       response.EnsureSuccessStatusCode();
+             var credentials = new ApplicationUser{userName="jhon5",passWord="jhon1"};
+        var content1 =JsonConvert.SerializeObject(credentials);
+        var stringContent1 = new  StringContent(content1,Encoding.UTF8,"application/json");
+        var response1 = await _client1.PostAsync("/user/login",stringContent1);
+        response1.EnsureSuccessStatusCode();
+        var token1 = await response1.Content.ReadAsStringAsync();
+        Console.WriteLine(token1);
+        JObject json = JObject.Parse(token1);
+        string jwttoken = Convert.ToString(json.GetValue("token"));
+        _client1.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",jwttoken);
+        var response2 = await _client1.GetAsync("/user/getpg/lucknow");
+        response2.EnsureSuccessStatusCode();
+        var responseString2 = await response2.Content.ReadAsStringAsync();
+        var pg = JsonConvert.DeserializeObject<List<PG>>(responseString2);
+        pg.Count().Should().Be(1);
+        var response3 = await _client1.GetAsync("/user/bookRoom/1");
+        response3.EnsureSuccessStatusCode();
+       // Assert.Equal(1,pg.Count());
+           Console.WriteLine("test8");
+            
+
+        }
+         [Fact]
+        public async Task pg10(){
+           Console.WriteLine("dj,fhs;klhfl;ksd.nfh;ksdgbfsd;k.fhsd;lghsdlhsdlh;sdlgh;sdlhsdnlsdnfaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+           var _client1 = _factory.CreateClient();
+           
+            var credentials1 = new ApplicationUser{userName="jhon1",passWord="jhon1"};
+        var content4 =JsonConvert.SerializeObject(credentials1);
+        var stringContent4 = new  StringContent(content4,Encoding.UTF8,"application/json");
+        var response4 = await _client1.PostAsync("/user/login",stringContent4);
+        response4.EnsureSuccessStatusCode();
+        var token2 = await response4.Content.ReadAsStringAsync();
+        Console.WriteLine(token2);
+        JObject json1 = JObject.Parse(token2);
+        string jwttoken1 = Convert.ToString(json1.GetValue("token"));
+        _client1.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",jwttoken1);
+        var response6 = await _client1.GetAsync("/user/getpg/lucknow");
+         response6.StatusCode.Should().Be(403);
+        //response6.StatusCode.Equals(200);
+         var response7 = await _client1.GetAsync("/user/bookRoom/1");
+        response7.StatusCode.Should().Be(403);
+        }
+         [Fact]
+        public async Task pg11(){
+           Console.WriteLine("dj,fhs;klhfl;ksd.nfh;ksdgbfsd;k.fhsd;lghsdlhsdlh;sdlgh;sdlhsdnlsdnfaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+           var _client1 = _factory.CreateClient();
+            var user = new ApplicationUser{userName="jhon10",passWord="jhon1",role="USER"};
+       var content = JsonConvert.SerializeObject(user);
+       var stringContent = new StringContent(content,Encoding.UTF8,"application/json");
+       var response =  await _client1.PostAsync("/user",stringContent);
+            var credentials1 = new ApplicationUser{userName="jhon10",passWord="jhon1"};
+        var content4 =JsonConvert.SerializeObject(credentials1);
+        var stringContent4 = new  StringContent(content4,Encoding.UTF8,"application/json");
+        var response4 = await _client1.PostAsync("/user/login",stringContent4);
+        response4.EnsureSuccessStatusCode();
+        var token2 = await response4.Content.ReadAsStringAsync();
+        Console.WriteLine(token2);
+        JObject json1 = JObject.Parse(token2);
+        string jwttoken1 = Convert.ToString(json1.GetValue("token"));
+        _client1.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",jwttoken1);
+        var response6 = await _client1.GetAsync("/user/pg");
+         response6.StatusCode.Should().Be(403);
+        //response6.StatusCode.Equals(200);
+         var response7 = await _client1.GetAsync("/user/addpg");
+        response7.StatusCode.Should().Be(403);
+        }
+
+      
+
+  
+
+    }
+}
